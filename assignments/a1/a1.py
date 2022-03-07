@@ -8,6 +8,15 @@ import collections
 
 # Task 1 (2 marks)
 def count_pos(document, pos):
+    nltk.download("universal_tagset")
+    for document in nltk.corpus.gutenberg.fileids():
+        print(document)
+    dcounter = collections.Counter(nltk.corpus.gutenberg.words(document))
+
+    text = word_tokenize(dcounter)
+    count = nltk.pos_tag(text, tagset = "universal" )
+
+    
     """Return the number of occurrences of words with a given part of speech. To find the part of speech, use 
     NLTK's "Universal" tag set. To find the words of the document, use NLTK's sent_tokenize and word_tokenize.
     >>> count_pos('austen-emma.txt', 'NOUN')
@@ -15,7 +24,7 @@ def count_pos(document, pos):
     >>> count_pos('austen-sense.txt', 'VERB')
     25074
     """
-    return 0
+    return count
 
 # Task 2 (2 marks)
 def get_top_stem_bigrams(document, n):
