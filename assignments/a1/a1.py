@@ -39,15 +39,18 @@ def get_top_stem_bigrams(document, n):
     >>> get_top_stem_bigrams('austen-sense.txt',4)
     [(',', 'and'), ('.', "''"), (';', 'and'), (',', "''")]
     """
-    sent_tokens = [word_tokenize(s) for s in sent_tokenize(nltk.corpus.gutenberg.raw(document))]
+    raw = nltk.corpus.gutenberg.raw(document)
+    tokens = [w for s in nltk.sent_tokenize(raw) for w in nltk.word_tokenize(s)]
+    s = nltk.PorterStemmer()
+    nowords = ['``']
+    for word in list(tokens):
+        if word in nowords:
+            tokens.remove(word)
+    stems = [s.stem(t) for t in tokens]
     bigrams = []
-    for s in sent_tokens:
-        bigrams += nltk.bigrams(s)
-    c = collections.Counter(bigrams)
-    #print(c.most_common(n))
-    return [b for b, f in c.most_common(n)]
-
-
+    bigrams += nltk.bigrams(stems)
+    bigrams_counter = collections.Counter(bigrams)
+    return [b for b, f in bigrams_counter.most_common(n)]
 
 # Task 3 (2 marks)
 def get_same_stem(document, word):
@@ -59,7 +62,18 @@ def get_same_stem(document, word):
     >>> get_same_stem('austen-sense.txt','respect')[:5]
     [('respect', 22), ('respectability', 1), ('respectable', 14), ('respectably', 1), ('respected', 3)]
     """
-    return []
+    stopwords = nltk.corpus.stopwords.words('english')
+    raw = nltk.corpus.gutenberg.raw(document)
+    tokens = [w for s in nltk.sent_tokenize(raw) for w in nltk.word_tokenize(s)
+              if w.lower() not in stopwords]
+    s = nltk.PorterStemmer()
+    stems = [s.stem(t) for t in tokens]
+    h = []
+    for d in tokens:
+        if s.stem(d) == word:
+            h.append(d)
+    c = collections.Counter(h)
+    return sorted(c.items())
 
 # Task 4 (2 marks)
 def most_frequent_after_pos(document, pos):
@@ -94,17 +108,24 @@ def get_word_tfidf(text):
     >>> get_word_tfidf('Brutus is a honourable person')
     [('brutus', 0.8405129362379974), ('honourable', 0.4310718596448824), ('person', 0.32819971943754456)]
     """
+    stop_words = nltk.corpus.stopwords.words('english')
+    x = text.split()
+    x = sorted(x)
+    for i in range(len(x)):
+            x[i] = x[i].lower()
+    filtered_x = [w for w in x if not w.lower() in stop_words]
     tfidf = TfidfVectorizer(input='content',stop_words='english')
     data = [nltk.corpus.gutenberg.raw(f) for f in nltk.corpus.gutenberg.fileids()]
     tfidf.fit(data)
-    result = tfidf.transform([nltk.corpus.gutenberg.raw(text)]).toarray()
+    result = tfidf.transform([text]).toarray()
     words = tfidf.get_feature_names()
-    sorted_words = sorted(words, key=lambda x: result[0, words.index(x)], reverse=True)
-    #print('thee:', result[0, words.index('thee')])
-    #print('thel:', result[0, words.index('thel')])
-    print (sorted_words)
-    return sorted_words
-
+    h = []
+    p = []
+    for z in filtered_x:
+        p.append(z) 
+        h.append(result[0, words.index(z)])
+    final = list(zip(p,h))
+    return final
 
 # DO NOT MODIFY THE CODE BELOW
 if __name__ == "__main__":
